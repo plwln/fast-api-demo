@@ -9,7 +9,7 @@ from starlette.responses import StreamingResponse
 from fastapi.responses import FileResponse
 import shutil
 
-def unzip(name, url):
+async def unzip(name, url):
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
     try:
