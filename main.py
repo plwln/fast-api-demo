@@ -17,7 +17,7 @@ def unzip(name, url):
     for n in os.listdir('./'+name+"/"):
         image = Image.open('./'+name+"/"+n)
         image.mode = 'I'
-        image.point(lambda i: i*(1./256)).convert('L').save('./'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
+        image.point(lambda i: i*(1./256)).convert('L').copy().save('./'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
 
 
 class Item(BaseModel):
