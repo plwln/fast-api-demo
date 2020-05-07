@@ -7,12 +7,15 @@ from PIL import Image
 import io
 from starlette.responses import StreamingResponse
 from fastapi.responses import FileResponse
+import shutil
 
 def unzip(name, url):
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
-    print(zip_file_object.infolist())
-    os.mkdir(name)
+    try:
+        os.mkdir(name)
+    except:
+        shutil.rmtree(name, ignore_errors=True)
     zip_file_object.extractall('./'+name+"/")
     for n in os.listdir('./'+name+"/"):
         image = Image.open('./'+name+"/"+n)
