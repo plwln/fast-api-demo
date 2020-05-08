@@ -16,12 +16,12 @@ def unzip(name, url):
         os.mkdir(name)
     except:
         shutil.rmtree(name, ignore_errors=True)
-    zip_file_object.extractall('./'+name+"/")
-    for n in os.listdir('./'+name+"/"):
-        image = Image.open('./'+name+"/"+n)
+    zip_file_object.extractall('shots/'+name+"/")
+    for n in os.listdir('shots/'+name+"/"):
+        image = Image.open('shots/'+name+"/"+n)
         image.mode = 'I'
         try:
-            image.point(lambda i: i*(1./256)).convert('L').save('./'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
+            image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
         except:
             continue
 
@@ -35,6 +35,9 @@ class imageRequest(BaseModel):
 
 app = FastAPI()
 
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info")
+
 @app.post('/unzip')
 def unzip_page(item: Item):
     for name in item.urls.keys():
@@ -45,5 +48,5 @@ def unzip_page(item: Item):
 async def image_endpoint(images: imageRequest):
     # Returns a cv2 image array from the document vector
     # img = Image.open('./'+images.name+"/image.B2.jpeg")
-    path = [n for n in os.listdir('./'+images.name+"/") if images.band in n ]
-    return FileResponse('./'+images.name+"/"+path[0])
+    path = [n for n in os.listdir('shots/'+images.name+"/") if images.band in n ]
+    return FileResponse('shots/'+images.name+"/"+path[0])
