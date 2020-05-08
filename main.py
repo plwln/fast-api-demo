@@ -8,6 +8,7 @@ import io
 from starlette.responses import StreamingResponse
 from fastapi.responses import FileResponse
 import shutil
+import uvicorn
 
 def unzip(name, url):
     filehandle, _ = urllib.urlretrieve(url)
@@ -36,7 +37,7 @@ class imageRequest(BaseModel):
 app = FastAPI()
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=8082, log_level="info")
 
 @app.post('/unzip')
 def unzip_page(item: Item):
