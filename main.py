@@ -14,7 +14,7 @@ def unzip(name, url):
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
     try:
-        os.mkdir(name)
+        os.mkdir("shots/"+name)
     except:
         shutil.rmtree(name, ignore_errors=True)
     zip_file_object.extractall('shots/'+name+"/")
