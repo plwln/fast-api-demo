@@ -39,13 +39,13 @@ app = FastAPI()
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8082, log_level="info")
 
-@app.post('/unzip')
+@app.post('/api/unzip')
 def unzip_page(item: Item):
     for name in item.urls.keys():
         unzip(name, item.urls[name])
 
 
-@app.post("/get_image")
+@app.post("/api/get_image")
 async def image_endpoint(images: imageRequest):
     # Returns a cv2 image array from the document vector
     # img = Image.open('./'+images.name+"/image.B2.jpeg")
