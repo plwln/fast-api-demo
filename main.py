@@ -9,6 +9,7 @@ from starlette.responses import StreamingResponse
 from fastapi.responses import FileResponse
 import shutil
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 def unzip(name, url):
     filehandle, _ = urllib.urlretrieve(url)
@@ -35,6 +36,22 @@ class imageRequest(BaseModel):
     band: str
 
 app = FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:8082",
+    "http://localhost/api/unzip",
+    "http://localhost:8082/api/get_image",
+    "http://localhost/unzip",
+    "http://localhost:8082/get_image",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8082, log_level="info")
