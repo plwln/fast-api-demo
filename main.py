@@ -66,5 +66,5 @@ def unzip_page(item: Item):
 async def image_endpoint(images: imageRequest):
     # Returns a cv2 image array from the document vector
     # img = Image.open('./'+images.name+"/image.B2.jpeg")
-    path = [n for n in os.listdir('shots/'+images.name+"/") if images.band in n ]
+    path = [n for n in os.listdir('shots/'+images.name+"/") if images.band in n and '.jpeg' in n]
     return FileResponse('shots/'+images.name+"/"+path[0])
