@@ -22,10 +22,10 @@ def unzip(name, url):
     for n in os.listdir('shots/'+name+"/"):
         image = Image.open('shots/'+name+"/"+n)
         image.mode = 'I'
-        try:
-            image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
-        except:
-            continue
+        # try:
+        image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
+        # except:
+        #     continue
 
 
 class Item(BaseModel):
