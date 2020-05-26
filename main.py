@@ -21,11 +21,13 @@ def unzip(name, url):
     zip_file_object.extractall('shots/'+name+"/")
     for n in os.listdir('shots/'+name+"/"):
         image = Image.open('shots/'+name+"/"+n)
-        image.mode = 'I'
-        # try:
-        image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
-        # except:
-        #     continue
+        # image.mode = 'I'
+        try:
+            # image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
+            out = image.convert("RGB")
+            out.save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG", quality=90)
+        except:
+            continue
 
 
 class Item(BaseModel):
