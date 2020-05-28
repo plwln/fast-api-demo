@@ -9,6 +9,7 @@ from starlette.responses import StreamingResponse
 from fastapi.responses import FileResponse
 import shutil
 import uvicorn
+import cv2
 from fastapi.middleware.cors import CORSMiddleware
 
 def unzip(name, url):
@@ -28,7 +29,13 @@ def unzip(name, url):
             out.save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG", quality=90)
         except:
             continue
-
+    images = []
+    for band in ('B3', 'B2', 'B4'):
+        images.append(cv2.imread('shots/'+name+'/'+name+'.'+band+'.jpeg'))
+    images[0][:,:,0],images[0][:,:,2]  = images[1][:,:,1], images[2][:,:,2]
+    out = image.convert('RGB')
+    # out.save('shots/'+name+"/"+name+'.color.jpeg', "JPEG", quality=90)
+    cv2.imwrite ( 'shots/'+name+"/"+name+'.color.jpeg' , images[0])
 
 class Item(BaseModel):
     urls: dict
@@ -71,3 +78,15 @@ async def image_endpoint(images: imageRequest):
     # img = Image.open('./'+images.name+"/image.B2.jpeg")
     path = [n for n in os.listdir('shots/'+images.name+"/") if images.band in n and images.type in n]
     return FileResponse('shots/'+images.name+"/"+path[0])
+
+@app.post("/api/make_all_color")
+def make_all_color():
+    print(os.listdir('shots/'))
+    for n in os.listdir('shots/'):
+        print(n)
+        images=[]
+        for band in ('B3', 'B2', 'B4'):
+            images.append(cv2.imread('shots/'+n+'/'+n+'.'+band+'.jpeg'))
+        images[0][:,:,0],images[0][:,:,2]  = images[1][:,:,1], images[2][:,:,2]
+        cv2.imwrite( 'shots/'+n+"/"+n+'.color.jpeg' , images[0])
+
