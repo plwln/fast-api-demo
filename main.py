@@ -94,3 +94,7 @@ def make_all_color():
 @app.get("/api/getCookies")
 def getCookies():
     return requests.get("http://91.239.142.111:8888/agat/login?name=teamvolg&password=77lS5r&project=agat").headers['set-cookie']
+
+@app.get("/api/startTask")
+def startTask():
+    return requests.post("http://91.239.142.111:8888/agat/run/b6aa5e41fdf6e8b502b08447216e735d6").status_code
