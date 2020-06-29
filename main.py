@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import requests
 import urllib.request as urllib
 import zipfile
 import os
@@ -90,3 +91,6 @@ def make_all_color():
         images[0][:,:,0],images[0][:,:,2]  = images[1][:,:,1], images[2][:,:,2]
         cv2.imwrite( 'shots/'+n+"/"+n+'.color.jpeg' , images[0])
 
+@app.get("/api/getCookies")
+def getCookies():
+    return requests.get("http://91.239.142.111:8888/agat/login?name=teamvolg&password=77lS5r&project=agat").headers['set-cookie']
