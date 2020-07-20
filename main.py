@@ -13,38 +13,41 @@ import uvicorn
 import cv2
 from fastapi.middleware.cors import CORSMiddleware
 
-def unzip(name, url):
+def unzip(name, url, folder):
+    folder = 'shots/' if folder=='empty' else folder
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
     try:
-        os.mkdir("shots/"+name)
+        os.mkdir(folder+name)
     except:
         shutil.rmtree(name, ignore_errors=True)
-    zip_file_object.extractall('shots/'+name+"/")
-    for n in os.listdir('shots/'+name+"/"):
-        image = Image.open('shots/'+name+"/"+n)
+    zip_file_object.extractall(folder+name+"/")
+    for n in os.listdir(folder+name+"/"):
+        image = Image.open(folder+name+"/"+n)
         # image.mode = 'I'
         try:
             # image.point(lambda i: i*(1./256)).convert('L').save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG")
             out = image.convert("RGB")
-            out.save('shots/'+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG", quality=90)
+            out.save(folder+name+"/"+n.replace(".tif","")+'.jpeg', "JPEG", quality=90)
         except:
             continue
     images = []
     for band in ('B3', 'B2', 'B4'):
-        images.append(cv2.imread('shots/'+name+'/'+name+'.'+band+'.jpeg'))
+        images.append(cv2.imread(folder+name+'/'+name+'.'+band+'.jpeg'))
     images[0][:,:,0],images[0][:,:,2]  = images[1][:,:,1], images[2][:,:,2]
     out = image.convert('RGB')
     # out.save('shots/'+name+"/"+name+'.color.jpeg', "JPEG", quality=90)
-    cv2.imwrite ( 'shots/'+name+"/"+name+'.color.jpeg' , images[0])
+    cv2.imwrite ( folder+name+"/"+name+'.color.jpeg' , images[0])
 
 class Item(BaseModel):
     urls: dict
+    folder: str
 
 class imageRequest(BaseModel):
     name: str
     band: str
     type: str
+    folder: str
 
 app = FastAPI()
 origins = [
@@ -70,15 +73,16 @@ if __name__ == "__main__":
 @app.post('/api/unzip')
 def unzip_page(item: Item):
     for name in item.urls.keys():
-        unzip(name, item.urls[name])
+        unzip(name, item.urls[name], item.folder)
 
 
 @app.post("/api/get_image")
 async def image_endpoint(images: imageRequest):
     # Returns a cv2 image array from the document vector
     # img = Image.open('./'+images.name+"/image.B2.jpeg")
-    path = [n for n in os.listdir('shots/'+images.name+"/") if images.band in n and images.type in n]
-    return FileResponse('shots/'+images.name+"/"+path[0])
+    folder = 'shots/' if folder=='empty' else folder
+    path = [n for n in os.listdir(folder+images.name+"/") if images.band in n and images.type in n]
+    return FileResponse(folder+images.name+"/"+path[0])
 
 @app.post("/api/make_all_color")
 def make_all_color():
