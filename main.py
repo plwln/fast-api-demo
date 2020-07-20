@@ -85,15 +85,15 @@ async def image_endpoint(images: imageRequest):
     return FileResponse(folder+images.name+"/"+path[0])
 
 @app.post("/api/make_all_color")
-def make_all_color():
-    print(os.listdir('shots/'))
-    for n in os.listdir('shots/'):
+def make_all_color(folder):
+    print(os.listdir(folder))
+    for n in os.listdir(folder):
         print(n)
         images=[]
         for band in ('B3', 'B2', 'B4'):
-            images.append(cv2.imread('shots/'+n+'/'+n+'.'+band+'.jpeg'))
+            images.append(cv2.imread(folder+n+'/'+n+'.'+band+'.jpeg'))
         images[0][:,:,0],images[0][:,:,2]  = images[1][:,:,1], images[2][:,:,2]
-        cv2.imwrite( 'shots/'+n+"/"+n+'.color.jpeg' , images[0])
+        cv2.imwrite( folder+n+"/"+n+'.color.jpeg' , images[0])
 
 @app.get("/api/getCookies")
 def getCookies():
