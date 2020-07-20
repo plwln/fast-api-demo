@@ -13,8 +13,11 @@ import uvicorn
 import cv2
 from fastapi.middleware.cors import CORSMiddleware
 
-def unzip(name, url, folder):
-    folder = 'shots/' if folder=='empty' else folder
+def unzip(name, url, folder):    
+    if folder=='empty':
+        folder = 'shots/'
+    else:
+        os.mkdir(folder)
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
     try:
