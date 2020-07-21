@@ -28,6 +28,7 @@ def unzip(name, url, folder):
         os.mkdir(folder+name)
     except:
         shutil.rmtree(name, ignore_errors=True)
+    print(folder+name+"/")
     zip_file_object.extractall(folder+name+"/")
     for n in os.listdir(folder+name+"/"):
         image = Image.open(folder+name+"/"+n)
