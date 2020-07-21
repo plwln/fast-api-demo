@@ -17,6 +17,7 @@ def unzip(name, url, folder):
     if folder=='empty':
         folder = 'shots/'
     else:
+        folder = "shots/"+folder
         try:
             os.mkdir(folder)
         except:
