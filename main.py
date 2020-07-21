@@ -17,7 +17,11 @@ def unzip(name, url, folder):
     if folder=='empty':
         folder = 'shots/'
     else:
-        os.mkdir(folder)
+        try:
+            os.mkdir(folder)
+        except:
+            shutil.rmtree(name, ignore_errors=True)
+        
     filehandle, _ = urllib.urlretrieve(url)
     zip_file_object = zipfile.ZipFile(filehandle, 'r')
     try:
