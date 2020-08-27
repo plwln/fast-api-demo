@@ -228,9 +228,9 @@ def startTask():
     return requests.post("http://91.239.142.111:8888/agat/run/b6aa5e41fdf6e8b502b08447216e735d6").status_code
 
 @app.get("/api/concatenate")
-def concatenateImage(concatenate: Concatenate):
+def concatenateImage():
     rows = []
-    black_image = np.zeros((128,128,3), np.float32)
+    black_image = np.zeros((32,32,3), np.float32)
     big_img = None
     for i in range(37):
         imgs = None
@@ -238,7 +238,7 @@ def concatenateImage(concatenate: Concatenate):
             print("shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/test-"+str(i)+"-"+str(j)+".color.jpeg")
             try:
                 img = cv2.imread("shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/test-"+str(i)+"-"+str(j)+".color.jpeg")
-                img = cv2.resize(img, (128,128), interpolation=cv2.INTER_AREA)
+                img = cv2.resize(img, (32,32), interpolation=cv2.INTER_AREA)
             except:
                 img = black_image
             if imgs is None:
