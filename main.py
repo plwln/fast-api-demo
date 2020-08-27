@@ -13,116 +13,30 @@ import uvicorn
 import cv2
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
-import keras
-from keras.models import load_model
-from keras.models import Model
-import tensorflow as tf
-from keras.layers import Input, Conv2D, Conv2DTranspose, BatchNormalization, Activation, MaxPooling2D, Dropout, concatenate
-from keras.callbacks import ModelCheckpoint
-import keras.backend as K
-from keras.optimizers import *
+import tensorflow.keras
+from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model
+# import tensorflow as tf
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, BatchNormalization, Activation, MaxPooling2D, Dropout, concatenate
+from tensorflow.keras.callbacks import ModelCheckpoint
+import tensorflow.keras.backend as K
+from tensorflow.keras.optimizers import *
+from model import UNet
+from data import *
+import  subprocess
 
-def dice_coef(target, prediction, axis=(1, 2), smooth=0.01):
-      """
-      Sorenson Dice
-      \frac{  2 \times \left | T \right | \cap \left | P \right |}{ \left | T \right | +  \left | P \right |  }
-      where T is ground truth mask and P is the prediction mask
-      """
-      prediction = K.round(prediction)  # Round to 0 or 1
 
-      intersection = tf.reduce_sum(target * prediction, axis=axis)
-      union = tf.reduce_sum(target + prediction, axis=axis)
-      numerator = tf.constant(2.) * intersection + smooth
-      denominator = union + smooth
-      coef = numerator / denominator
 
-      return tf.reduce_mean(coef)
-
-def dice_coef_loss(target, prediction, axis=(1, 2), smooth=1.0):
-    """
-    Sorenson (Soft) Dice loss
-    Using -log(Dice) as the loss since it is better behaved.
-    Also, the log allows avoidance of the division which
-    can help prevent underflow when the numbers are very small.
-    """
-    intersection = tf.reduce_sum(prediction * target, axis=axis)
-    p = tf.reduce_sum(prediction, axis=axis)
-    t = tf.reduce_sum(target, axis=axis)
-    numerator = tf.reduce_mean(intersection + smooth)
-    denominator = tf.reduce_mean(t + p + smooth)
-    dice_loss = -tf.math.log(2.*numerator) + tf.math.log(denominator)
-
-class UNet(Model):
-    """ U-Net atchitecture
-    Creating a U-Net class that inherits from keras.models.Model
-    In initializer, CNN layers are defined using functions from model.utils
-    Then parent-initializer is called wuth calculated input and output layers
-    Build function is also defined for model compilation and summary
-    checkpoint returns a ModelCheckpoint for best model fitting
-    """
-    def __init__(
-        self,
-        input_size,
-        n_filters,
-        pretrained_weights = None
-    ):
-        # define input layer
-        input = input_tensor(input_size)
-
-        # begin with contraction part
-        conv1 = double_conv(input, n_filters * 1)
-        pool1 = pooling(conv1)
-
-        conv2 = double_conv(pool1, n_filters * 2)
-        pool2 = pooling(conv2)
-
-        conv3 = double_conv(pool2, n_filters * 4)
-        pool3 = pooling(conv3)
-
-        conv4 = double_conv(pool3, n_filters * 8)
-        pool4 = pooling(conv4)
-
-        conv5 = double_conv(pool4, n_filters * 16)
-
-        # expansive path
-        up6 = deconv(conv5, n_filters * 8)
-        up6 = merge(conv4, up6)
-        conv6 = double_conv(up6, n_filters * 8)
-
-        up7 = deconv(conv6, n_filters * 4)
-        up7 = merge(conv3, up7)
-        conv7 = double_conv(up7, n_filters * 4)
-
-        up8 = deconv(conv7, n_filters * 2)
-        up8 = merge(conv2, up8)
-        conv8 = double_conv(up8, n_filters * 2)
-
-        up9 = deconv(conv8, n_filters * 1)
-        up9 = merge(conv1, up9)
-        conv9 = double_conv(up9, n_filters * 1)
-
-        # define output layer
-        output = single_conv(conv9, 1, 1)
-
-        # initialize Keras Model with defined above input and output layers
-        super(UNet, self).__init__(inputs = input, outputs = output)
-        
-        # load preatrained weights
-        if pretrained_weights:
-            self.load_weights(pretrained_weights)
-
-    def build(self):
-        self.compile(optimizer=Adam(lr=1e-4), loss=dice_coef_loss, metrics=[dice_coef])
-        self.summary()
-
-    def save_model(self, name):
-        self.save_weights(name)
-
-    @staticmethod
-    def checkpoint(name):
-        return callback(name)
-
-# model = load_model('final_unet_model.hdf5')
+img_height = 256
+img_width = 256
+img_size = (img_height, img_width)
+model_name = 'final_unet_model.hdf5'
+model_weights_name = 'final_unet_weight_model.hdf5'
+model = UNet(
+    input_size = (img_width,img_height,1),
+    n_filters = 64,
+    pretrained_weights = model_weights_name
+)
 
 def unzip(name, url, folder):    
     if folder=='empty':
@@ -159,6 +73,9 @@ def unzip(name, url, folder):
     # out.save('shots/'+name+"/"+name+'.color.jpeg', "JPEG", quality=90)
     cv2.imwrite ( folder+name+"/"+name+'.color.jpeg' , images[0])
 
+class ConcatenateType(BaseModel):
+    type: str
+
 class Item(BaseModel):
     urls: dict
     folder: str
@@ -191,6 +108,7 @@ app.add_middleware(
 )
 
 if __name__ == "__main__":
+    model.build()
     uvicorn.run("main:app", host="0.0.0.0", port=8082, log_level="info")
 
 @app.post('/api/unzip')
@@ -227,17 +145,21 @@ def getCookies():
 def startTask():
     return requests.post("http://91.239.142.111:8888/agat/run/b6aa5e41fdf6e8b502b08447216e735d6").status_code
 
-@app.get("/api/concatenate")
-def concatenateImage():
+@app.post("/api/concatenate")
+def concatenateImage(typeRequest:ConcatenateType):
+    
     rows = []
     black_image = np.zeros((32,32,3), np.float32)
     big_img = None
     for i in range(37):
         imgs = None
         for j in range(70):
-            print("shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/test-"+str(i)+"-"+str(j)+".color.jpeg")
+            path = "shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/"
+            if typeRequest.type == "predicts":
+                path = "predicts/predict"
+            # print(path+"test-"+str(i)+"-"+str(j)+".color.jpeg")
             try:
-                img = cv2.imread("shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/test-"+str(i)+"-"+str(j)+".color.jpeg")
+                img = cv2.imread(path+"test-"+str(i)+"-"+str(j)+".color.jpeg")
                 img = cv2.resize(img, (32,32), interpolation=cv2.INTER_AREA)
             except:
                 img = black_image
@@ -252,3 +174,16 @@ def concatenateImage():
         else:
             big_img = np.row_stack((big_img, img))
     cv2.imwrite('out.png', big_img)
+
+@app.post("/api/predict")
+def predict(folderRequest: Concatenate):
+     for i in range(37):
+        for j in range(70):
+            try:
+                name =  "test-"+str(i)+"-"+str(j)+".color.jpeg"
+                test_gen = test_generator("shots/testObject/testObject/test-"+str(i)+"-"+str(j)+"/", 1, img_size, name = name)
+                results = model.predict_generator(test_gen,1,verbose=1)
+                save_results("predicts/", results, name = name)
+            except:
+                continue
+            
