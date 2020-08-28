@@ -11,6 +11,7 @@ import numpy as np
 import os
 import random
 
+
 def square_image(img, random = None):
     """ Square Image
     Function that takes an image (ndarray),
@@ -24,7 +25,7 @@ def square_image(img, random = None):
     2 - constrained to the right/bottom anchor
     """
     size = max(img.shape[0], img.shape[1])
-    new_img = np.zeros((size, size),np.float32)
+    new_img = np.zeros((size, size, 3),np.float32)
     ax, ay = (size - img.shape[1])//2, (size - img.shape[0])//2
 
     if random and not ax == 0:
@@ -58,7 +59,7 @@ def normalize_mask(mask):
 def show_image(img):
     plt.imshow(img, cmap=plt.cm.gray)
     plt.show()
-
+    
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 def prepare_dataset(
@@ -111,7 +112,6 @@ def train_generator(
     image_folder,
     mask_folder,
     target_size,
-    image_color_mode = 'grayscale',
     mask_color_mode = 'grayscale'
 ):
     """ Image Data Generator
@@ -150,7 +150,7 @@ def test_generator(
     num_images,
     target_size,
     name = False,
-    as_gray = True
+    as_gray = False
 ):
     """ Image Data Generator
     Function that generates batches od data for testing from specified folder

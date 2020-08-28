@@ -33,8 +33,8 @@ import pylab as plt
 # from tensorflow.keras.callbacks import ModelCheckpoint
 # import tensorflow.keras.backend as K
 # from tensorflow.keras.optimizers import *
-# from model import UNet
-# from data import *
+from model import UNet
+from data import *
 # import  subprocess
 
 
@@ -43,12 +43,12 @@ img_height = 256
 img_width = 256
 img_size = (img_height, img_width)
 model_name = 'final_unet_model.hdf5'
-model_weights_name = 'final_unet_weight_model.hdf5'
-# model = UNet(
-#     input_size = (img_width,img_height,1),
-#     n_filters = 64,
-#     pretrained_weights = model_weights_name
-# )
+model_weights_name = 'final_unet_weight_model(1).hdf5'
+model = UNet(
+    input_size = (img_width,img_height,3),
+    n_filters = 64,
+    pretrained_weights = model_weights_name
+)
 
 def unzip(name, url, folder):    
     if folder=='empty':
@@ -120,7 +120,7 @@ app.add_middleware(
 )
 
 if __name__ == "__main__":
-    # model.build()
+    model.build()
     uvicorn.run("main:app", host="0.0.0.0", port=8082, log_level="info")
 
 @app.post('/api/unzip')
@@ -187,8 +187,8 @@ def concatenateImage(typeRequest:ConcatenateType):
             big_img = np.row_stack((big_img, img))
     cv2.imwrite('out.png', big_img)
 
-@app.post("/api/predict")
-def predict(folderRequest: Concatenate):
+@app.post("/api/predict_map")
+def predictMap(folderRequest: Concatenate):
      for i in range(37):
         for j in range(70):
             try:
