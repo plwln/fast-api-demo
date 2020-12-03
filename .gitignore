@@ -1,2 +1,7 @@
 /shots/
 /__pycache__/
+/colorFiles/
+/masksNew/
+/withObjects/
+final_unet_model.hdf5
+final_unet_weight_model.hdf5

@@ -162,7 +162,7 @@ def test_generator(
         if name:
             img = io.imread(os.path.join(test_path,name), as_gray = as_gray)
         else:
-            img = io.imread(os.path.join(test_path,"%d.jpeg"%i),as_gray = as_gray)
+            img = io.imread(os.path.join(test_path,"%d.jpg"%i),as_gray = as_gray)
         # img = square_image(img)
         img = reshape_image(img, target_size)
         yield img
